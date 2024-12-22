@@ -1,5 +1,13 @@
 {
-  "watch": ["src"],
+  "watch": [
+    "src",
+    "config",
+    "controllers",
+    "models",
+    "routes",
+    "schemas",
+    "utils"
+  ],
   "ext": "ts",
   "exec": "concurrently \"npx tsc --watch\" \"ts-node src/index.ts\""
 }
