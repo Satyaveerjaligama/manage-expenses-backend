@@ -70,7 +70,7 @@ export const updateExpense = async (req: any, res: any) => {
       res.status(404).json({ message: "Expense doesn't exist" });
       return;
     }
-    res.status(200).json({ message: "Expense Updated" });
+    res.status(200).json({ message: "Expense details Updated" });
   } catch (error) {
     res
       .status(400)
