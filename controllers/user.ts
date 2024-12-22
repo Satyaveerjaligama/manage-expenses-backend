@@ -1,3 +1,5 @@
+import { Expense } from "../models/expense";
+import { Group } from "../models/group";
 import { User } from "../models/user";
 import { generateUserId } from "../utils/utilityFunctions";
 
@@ -36,7 +38,34 @@ export const userLogin = async (req: any, res: any) => {
       return;
     }
 
-    res.status(200).json({ message: "User found" });
+    res.status(200).json({ message: "User found", userId: isValidUser.userId });
+  } catch (err) {
+    res
+      .status(400)
+      .json({ message: "Something went wrong while logging in user" });
+  }
+};
+
+export const userExpenses = async (req: any, res: any) => {
+  try {
+    const userId = req.params.userId;
+    const expenses = await Expense.find(
+      { userOrGroupId: userId },
+      { _id: 0, __v: 0 }
+    );
+    res.status(200).json({ expenses });
+  } catch (err) {
+    res
+      .status(400)
+      .json({ message: "Something went wrong while logging in user" });
+  }
+};
+
+export const userGroups = async (req: any, res: any) => {
+  try {
+    const userId = req.params?.userId;
+    const groups = await Group.find({ adminId: userId }, { _id: 0, __v: 0 });
+    res.status(200).json({ groups });
   } catch (err) {
     res
       .status(400)
