@@ -4,7 +4,6 @@ export const validateBody =
       await schema.validate(req.body, { abortEarly: true });
       next();
     } catch (err: any) {
-      console.log(err);
       res.status(400).json({ message: err?.errors[0] });
     }
   };
