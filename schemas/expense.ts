@@ -28,3 +28,19 @@ export const addExpenseValidations = yup.object().shape({
     otherwise: () => yup.string().optional(),
   }),
 });
+
+export const updateExpenseValidations = yup.object().shape({
+  expenseName: yup
+    .string()
+    .matches(
+      REGULAR_EXPRESSIONS.LETTERS_AND_NUMBERS,
+      "Only letters and number are allowed"
+    )
+    .max(30, "Label should not exceed 30 characters")
+    .min(3, "Label should be atleast 3 characters")
+    .required("Label is required"),
+  amount: yup.number().required("Amount is required"),
+  category: yup.string().required("Category is required"),
+  paymentMethod: yup.string().required("Payment method is required"),
+  date: yup.string().required("Date is required"),
+});
