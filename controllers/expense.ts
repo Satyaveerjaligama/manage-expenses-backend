@@ -32,3 +32,24 @@ export const addExpense = async (req: any, res: any) => {
       .json({ message: "Something went wrong while adding expense" });
   }
 };
+
+export const deleteExpense = async (req: any, res: any) => {
+  try {
+    const expenseId = req.params?.expenseId;
+    if (!expenseId) {
+      res.status(404).json({ message: "Expense id is missing" });
+      return;
+    }
+
+    const isDeleted = await Expense.findOneAndDelete({ expenseId });
+    if (!isDeleted) {
+      res.status(404).json({ message: "Expense doesn't exist" });
+      return;
+    }
+    res.status(200).json({ message: "Expense deleted" });
+  } catch (err) {
+    res
+      .status(400)
+      .json({ message: "Something went wrong while deleting expense" });
+  }
+};
