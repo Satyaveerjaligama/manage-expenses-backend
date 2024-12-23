@@ -25,3 +25,17 @@ export const updateGroupValidations = yup.object().shape({
     .min(5, "Group name should be atleast 5 characters")
     .required("Group name is required"),
 });
+
+export const joinGroupValidations = yup.object().shape({
+  userId: yup.string().required("User id is required"),
+  groupId: yup.string().required("Groupd id is required"),
+});
+
+export const processJoinRequestsValidation = yup.object().shape({
+  action: yup
+    .string()
+    .oneOf(["delete", "approve"])
+    .required("Action is required"),
+  userId: yup.string().required("User id is required"),
+  groupId: yup.string().required("Groupd id is required"),
+});
