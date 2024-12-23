@@ -9,9 +9,18 @@ import {
 import { addUserValidations, userLoginValidations } from "../schemas/user";
 import {
   createGroupValidations,
+  joinGroupValidations,
+  processJoinRequestsValidation,
   updateGroupValidations,
 } from "../schemas/group";
-import { createGroup, deleteGroup, updateGroup } from "../controllers/group";
+import {
+  createGroup,
+  deleteGroup,
+  fetchJoinRequests,
+  joinGroup,
+  processJoinRequests,
+  updateGroup,
+} from "../controllers/group";
 import {
   addExpenseValidations,
   updateExpenseValidations,
@@ -33,6 +42,13 @@ appRouter.post(
 appRouter.post("/add-expense", validateBody(addExpenseValidations), addExpense);
 appRouter.delete("/delete-expense/:expenseId", deleteExpense);
 appRouter.delete("/delete-group/:groupId", deleteGroup);
+appRouter.patch("/join-group", validateBody(joinGroupValidations), joinGroup);
+appRouter.patch(
+  "/process-join-request",
+  validateBody(processJoinRequestsValidation),
+  processJoinRequests
+);
+appRouter.get("/fetch-join-requests/:groupId", fetchJoinRequests);
 appRouter.patch(
   "/update-expense/:expenseId",
   validateBody(updateExpenseValidations),

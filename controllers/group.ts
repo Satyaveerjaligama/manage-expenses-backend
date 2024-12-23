@@ -69,3 +69,151 @@ export const deleteGroup = async (req: any, res: any) => {
       .json({ message: "Something went wrong while deleting group" });
   }
 };
+
+export const joinGroup = async (req: any, res: any) => {
+  try {
+    const { userId, groupId } = req.body;
+    const userInDb = await User.findOne({ userId });
+    if (!userInDb) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    const groupInDb = await Group.findOne({ groupId });
+    if (!groupInDb) {
+      res.status(404).json({ message: "Group not found" });
+      return;
+    }
+
+    if (
+      groupInDb.members.includes(userId) ||
+      groupInDb.requests.includes(userId) ||
+      groupInDb.adminId === userId
+    ) {
+      res.status(409).json({
+        message:
+          "User either already in the group or approval from admin is pending",
+      });
+      return;
+    }
+
+    groupInDb.requests.push(userId);
+
+    const updateGroup = await Group.findOneAndUpdate(
+      { groupId },
+      {
+        $set: {
+          requests: groupInDb.requests,
+        },
+      }
+    );
+
+    if (!updateGroup) {
+      req.status(500).json({ message: "User join request failed" });
+      return;
+    }
+    res.status(200).json({ message: "Join request sent" });
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Something went wrong while joining the group" });
+  }
+};
+
+export const processJoinRequests = async (req: any, res: any) => {
+  try {
+    const { action, groupId, userId } = req.body;
+    const userInDb = await User.findOne({ userId });
+    if (!userInDb) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    const groupInDb = await Group.findOne({ groupId });
+    if (!groupInDb) {
+      res.status(404).json({ message: "Group not found" });
+      return;
+    }
+
+    if (action === "delete") {
+      const index = groupInDb.requests.indexOf(userId);
+      if (index !== -1) {
+        groupInDb.requests.splice(index, 1);
+        const updateGroup = await Group.findOneAndUpdate(
+          { groupId },
+          {
+            $set: {
+              requests: groupInDb.requests,
+            },
+          }
+        );
+
+        if (!updateGroup) {
+          req.status(500).json({ message: "Something failed" });
+          return;
+        }
+        res.status(200).json({ message: "Request Rejected" });
+        return;
+      }
+      res.status(404).json({ message: "User Request Not found" });
+    } else if (action === "approve") {
+      const index = groupInDb.requests.indexOf(userId);
+      if (index !== -1) {
+        groupInDb.requests.splice(index, 1);
+        groupInDb.members.push(userId);
+        const updateGroup = await Group.findOneAndUpdate(
+          { groupId },
+          {
+            $set: {
+              members: groupInDb.members,
+              requests: groupInDb.requests,
+            },
+          }
+        );
+
+        if (!updateGroup) {
+          req.status(500).json({ message: "Something failed" });
+          return;
+        }
+        res.status(200).json({ message: "Request Approved" });
+        return;
+      }
+      res.status(404).json({ message: "User Request Not found" });
+    }
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Something went wrong while processing the request" });
+  }
+};
+
+export const fetchJoinRequests = async (req: any, res: any) => {
+  try {
+    const groupId = req.params.groupId;
+    const groupData = await Group.findOne({ groupId });
+    if (!groupData) {
+      res.status(404).json({ message: "Group not found" });
+      return;
+    }
+
+    const requests = groupData.requests;
+    if (requests.length === 0) {
+      res.status(404).json({ message: "No requests Found" });
+      return;
+    }
+
+    const requestsWithUsers: { userId: string; userName: string }[] = [];
+    for (const userId of requests) {
+      const userData = await User.findOne({ userId });
+      if (userData) {
+        requestsWithUsers.push({
+          userId: userData.userId,
+          userName: userData.userName,
+        });
+      }
+    }
+    res.status(200).json({ requests: requestsWithUsers });
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Something went wrong while fetching join requests" });
+  }
+};
