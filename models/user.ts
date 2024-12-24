@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema({
     maxLength: 20,
     minLength: 8,
   },
+  groups: {
+    type: [String],
+    default: [],
+  },
 });
 
 export const User = mongoose.model("User", userSchema);
