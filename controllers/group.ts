@@ -5,8 +5,8 @@ import { generateUserId } from "../utils/utilityFunctions";
 export const createGroup = async (req: any, res: any) => {
   try {
     const adminId = req.body.adminId;
-    const isValidAdmin = await User.findOne({ userId: adminId });
-    if (!isValidAdmin) {
+    const adminInDb = await User.findOne({ userId: adminId });
+    if (!adminInDb) {
       res.status(400).json({ message: "Admin doesn't exist" });
       return;
     }
@@ -21,6 +21,21 @@ export const createGroup = async (req: any, res: any) => {
 
     const group = new Group({ ...req.body, groupId });
     await group.save();
+
+    adminInDb.groups.push(groupId);
+    const isAdminUpdated = await User.findOneAndUpdate(
+      { userId: adminId },
+      {
+        $set: {
+          groups: adminInDb.groups,
+        },
+      }
+    );
+    if (!isAdminUpdated) {
+      res.status(500).json({
+        message: "Group created but failed to updated user groups",
+      });
+    }
     res.status(201).json({ message: "Group created successfully" });
   } catch (error) {
     res
@@ -173,6 +188,24 @@ export const processJoinRequests = async (req: any, res: any) => {
           req.status(500).json({ message: "Something failed" });
           return;
         }
+
+        userInDb.groups.push(groupId);
+        const updateUser = await User.findOneAndUpdate(
+          { userId },
+          {
+            $set: {
+              groups: userInDb.groups,
+            },
+          }
+        );
+
+        if (!updateUser) {
+          req.status(500).json({
+            message: "Group is updated but user groups is not updated",
+          });
+          return;
+        }
+
         res.status(200).json({ message: "Request Approved" });
         return;
       }

@@ -64,8 +64,23 @@ export const userExpenses = async (req: any, res: any) => {
 export const userGroups = async (req: any, res: any) => {
   try {
     const userId = req.params?.userId;
-    const groups = await Group.find({ adminId: userId }, { _id: 0, __v: 0 });
-    res.status(200).json({ groups });
+    const userInDb = await User.findOne({ userId });
+    if (!userInDb) {
+      res.status(404).json({ message: "User Not found" });
+      return;
+    }
+
+    const userGroups = [];
+    for (const groupId of userInDb.groups) {
+      const groupInDb = await Group.findOne(
+        { groupId },
+        { _id: false, __v: false }
+      );
+      if (groupInDb) {
+        userGroups.push(groupInDb);
+      }
+    }
+    res.status(200).json({ groups: userGroups });
   } catch (err) {
     res
       .status(400)
